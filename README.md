@@ -1,19 +1,18 @@
-# React-shop-cloudfront
+# J-Store: Modern E-commerce Frontend
 
-This is frontend starter project for J-Store. It uses the following technologies:
+J-Store is an e-commerce web application built with modern frontend technologies. This repository contains the frontend codebase for an online store that allows users to browse products, add items to cart, place orders, and manage their shopping experience.
 
-- [Vite](https://vitejs.dev/) as a project bundler
-- [React](https://beta.reactjs.org/) as a frontend framework
-- [React-router-dom](https://reactrouterdotcom.fly.dev/) as a routing library
-- [MUI](https://mui.com/) as a UI framework
-- [React-query](https://react-query-v3.tanstack.com/) as a data fetching library
-- [Formik](https://formik.org/) as a form library
-- [Yup](https://github.com/jquense/yup) as a validation schema
-- [Vitest](https://vitest.dev/) as a test runner
-- [MSW](https://mswjs.io/) as an API mocking library
-- [Eslint](https://eslint.org/) as a code linting tool
-- [Prettier](https://prettier.io/) as a code formatting tool
-- [TypeScript](https://www.typescriptlang.org/) as a type checking tool
+The application is built using React with TypeScript and leverages a comprehensive tech stack including:
+
+- Vite for fast development and optimized builds
+- Material UI for a polished, responsive user interface
+- React Query for efficient data fetching and state management
+- Formik and Yup for form handling and validation
+- MSW for API mocking during development
+
+The project follows a component-based architecture with dedicated pages for product listings, shopping cart, order management, and admin functionality for product imports. It's designed with best practices in mind, including comprehensive testing with Vitest and code quality tools like ESLint and Prettier.
+
+This frontend application serves as the user interface for the J-Store e-commerce platform, providing a seamless shopping experience.
 
 ## Available Scripts
 
