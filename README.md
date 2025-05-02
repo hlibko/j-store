@@ -12,8 +12,6 @@ The application is built using React with TypeScript and leverages a comprehensi
 
 The project follows a component-based architecture with dedicated pages for product listings, shopping cart, order management, and admin functionality for product imports. It's designed with best practices in mind, including comprehensive testing with Vitest and code quality tools like ESLint and Prettier.
 
-This frontend application serves as the user interface for the J-Store e-commerce platform, providing a seamless shopping experience.
-
 ## Available Scripts
 
 ### `start`
@@ -35,3 +33,23 @@ Runs tests in console, in browser or with coverage.
 ### `lint`, `prettier`
 
 Runs linting and formatting for all files in `src` folder.
+
+## Deployment
+
+This project uses AWS CDK to deploy the website to an S3 bucket with CloudFront distribution.
+
+### Deployment Steps
+
+1. Install dependencies:
+
+npm install
+
+2. Build and deploy:
+
+npm run deploy:website
+
+3. To destroy the infrastructure:
+
+npm run cdk:destroy
+
+The CloudFront URL will be displayed in the output after deployment.
