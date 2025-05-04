@@ -1,6 +1,6 @@
 {
   "name": "my-store-app",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "start": "vite",
@@ -11,11 +11,13 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint --ignore-path .gitignore --fix src",
     "prettier": "prettier src --write",
-    "cdk:synth": "cd infrastructure && cdk synth",
     "cdk:deploy": "cd infrastructure && cdk deploy --profile admin-1",
     "cdk:destroy": "cd infrastructure && cdk destroy --profile admin-1",
     "deploy:website": "npm run build && npm run cdk:deploy",
-    "test:cdk": "cd infrastructure && npm run test"
+    "cdk:test:": "cd infrastructure && npm run test",
+    "aws:get-cf-id": "node infrastructure/scripts/get-cloudfront-id.js",
+    "aws:get-s3-bucket": "node infrastructure/scripts/get-s3-bucket-name.js",
+    "aws:create-invalidation": "node infrastructure/scripts/create-invalidation.js"
   },
   "dependencies": {
     "@emotion/react": "^11.9.3",
