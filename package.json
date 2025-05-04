@@ -14,7 +14,8 @@
     "cdk:synth": "cd infrastructure && cdk synth",
     "cdk:deploy": "cd infrastructure && cdk deploy --profile admin-1",
     "cdk:destroy": "cd infrastructure && cdk destroy --profile admin-1",
-    "deploy:website": "npm run build && npm run cdk:deploy"
+    "deploy:website": "npm run build && npm run cdk:deploy",
+    "test:cdk": "cd infrastructure && npm run test"
   },
   "dependencies": {
     "@emotion/react": "^11.9.3",
