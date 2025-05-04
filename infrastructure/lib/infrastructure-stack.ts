@@ -38,7 +38,9 @@ export class InfrastructureStack extends cdk.Stack {
     const distribution = new cloudfront.Distribution(this, 'Distribution', {
       defaultRootObject: 'index.html',
       defaultBehavior: {
-        origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
+        origin: origins.S3BucketOrigin.withOriginAccessIdentity(websiteBucket, {
+          originAccessIdentity,
+        }),
         compress: true,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
