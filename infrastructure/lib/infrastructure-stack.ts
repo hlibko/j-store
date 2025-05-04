@@ -68,10 +68,18 @@ export class InfrastructureStack extends cdk.Stack {
       description: 'The domain name of the CloudFront distribution',
     });
 
+    // Output the CloudFront Distribution ID
+    new cdk.CfnOutput(this, 'DistributionId', {
+      value: distribution.distributionId,
+      description: 'The ID of the CloudFront distribution',
+      exportName: 'CloudFrontDistributionId',
+    });
+
     // Output the S3 bucket name
     new cdk.CfnOutput(this, 'WebsiteBucketName', {
       value: websiteBucket.bucketName,
       description: 'The name of the S3 bucket',
+      exportName: 'WebsiteBucketName',
     });
   }
 }
