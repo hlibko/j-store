@@ -4,6 +4,7 @@ import Link from "@mui/material/Link";
 import Container from "@mui/material/Container";
 import Header from "~/components/MainLayout/components/Header";
 import Box from "@mui/material/Box";
+import packageJson from '../../../package.json';
 
 function Copyright() {
   return (
@@ -12,8 +13,8 @@ function Copyright() {
       <Link color="inherit" href="" underline="hover">
         J-Store
       </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
+      {new Date().getFullYear()} {" "}
+      (v{packageJson.version})
     </Typography>
   );
 }

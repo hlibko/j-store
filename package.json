@@ -1,6 +1,6 @@
 {
   "name": "my-store-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "start": "vite",
@@ -10,7 +10,12 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint --ignore-path .gitignore --fix src",
-    "prettier": "prettier src --write"
+    "prettier": "prettier src --write",
+    "cdk:synth": "cd infrastructure && cdk synth",
+    "cdk:deploy": "cd infrastructure && cdk deploy --profile admin-1",
+    "cdk:destroy": "cd infrastructure && cdk destroy --profile admin-1",
+    "deploy:website": "npm run build && npm run cdk:deploy",
+    "test:cdk": "cd infrastructure && npm run test"
   },
   "dependencies": {
     "@emotion/react": "^11.9.3",
