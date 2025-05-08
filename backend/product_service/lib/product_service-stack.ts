@@ -1,7 +1,7 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { Construct } from 'constructs';
-import { RestApi, LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
+import { RestApi, LambdaIntegration, Cors } from "aws-cdk-lib/aws-apigateway";
 
 export class ProductServiceStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -17,7 +17,13 @@ export class ProductServiceStack extends Stack {
     // Create API Gateway REST API
     const api = new RestApi(this, "ProductsApi", {
       restApiName: "Products Service",
-      description: "This service serves product information"
+      description: "This service serves product information",
+      defaultCorsPreflightOptions: {
+        allowOrigins: ['https://d1y74wccw6evhw.cloudfront.net'],
+        allowMethods: ['GET', 'OPTIONS'],
+        allowHeaders: Cors.DEFAULT_HEADERS,
+        allowCredentials: true,
+      }
     });
 
     // Create a resource for /products
