@@ -8,7 +8,11 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "cdk:deploy": "cdk deploy --profile admin-1",
+    "cdk:deploy-hotswap": "cdk deploy --hotswap --profile admin-1",
+    "cdk:watch": "cdk watch --profile admin-1",
+    "cdk:destroy": "cdk destroy --profile admin-1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
