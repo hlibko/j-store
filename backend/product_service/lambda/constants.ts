@@ -1,0 +1,1 @@
+export const FRONTEND_URL = 'https://d1y74wccw6evhw.cloudfront.net';
