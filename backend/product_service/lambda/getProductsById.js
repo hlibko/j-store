@@ -1,37 +1,6 @@
-exports.handler = async function (event) {
-    const products = [
-        {
-            description: "Short Product Description 1",
-            id: "1",
-            price: 101,
-            title: "Product 1",
-        },
-        {
-            description: "Short Product Description 2",
-            id: "2",
-            price: 102,
-            title: "Product 2",
-        },
-        {
-            description: "Short Product Description 3",
-            id: "3",
-            price: 103,
-            title: "Product 3",
-        },
-        {
-            description: "Short Product Description 4",
-            id: "4",
-            price: 104,
-            title: "Product 4",
-        },
-        {
-            description: "Short Product Description 5",
-            id: "5",
-            price: 105,
-            title: "Product 5",
-        },
-    ];
+const { products } = require('./mockData');
 
+exports.handler = async function (event) {
     // Extract productId from path parameters
     const productId = event.pathParameters?.productId;
 
