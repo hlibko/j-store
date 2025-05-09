@@ -1,5 +1,7 @@
 // Mock product data to be shared across Lambda functions
-exports.products = [
+import { Product } from './types';
+
+export const products: Product[] = [
     {
         id: "1",
         title: "Product 1",

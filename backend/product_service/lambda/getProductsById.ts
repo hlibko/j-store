@@ -1,7 +1,9 @@
-const { products } = require('./mockData');
-const { FRONTEND_URL } = require('./constants');
+// lambda/getProductsById.ts
+import { products } from './mockData';
+import { FRONTEND_URL } from './constants';
+import { APIGatewayEvent, APIGatewayResponse } from './types';
 
-exports.handler = async function (event) {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayResponse> => {
     // Extract productId from path parameters
     const productId = event.pathParameters?.productId;
 
@@ -44,4 +46,4 @@ exports.handler = async function (event) {
         },
         body: JSON.stringify(product),
     };
-}
+};

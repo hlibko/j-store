@@ -1,8 +1,9 @@
-const { products } = require('./mockData');
-const { FRONTEND_URL } = require('./constants');
+// lambda/getProductsList.ts
+import { products } from './mockData';
+import { FRONTEND_URL } from './constants';
+import { APIGatewayResponse } from './types';
 
-exports.handler = async function () {
-
+export const handler = async (): Promise<APIGatewayResponse> => {
   return {
     statusCode: 200,
     headers: {
@@ -12,5 +13,5 @@ exports.handler = async function () {
       'Access-Control-Allow-Methods': 'GET,OPTIONS'
     },
     body: JSON.stringify(products),
-  }
-}
+  };
+};
