@@ -2,29 +2,30 @@
 
 This service provides product information through a REST API.
 
+## API Documentation
+
+The API is documented using the OpenAPI specification. You can view the documentation in two ways:
+
+1. **YAML format**: [openapi.yaml](./openapi.yaml)
+2. **JSON format**: [openapi.json](./openapi.json)
+
+To visualize the API documentation, you can:
+
+1. Copy the content of either file
+2. Go to [Swagger Editor](https://editor.swagger.io/)
+3. Paste the content to see the interactive documentation
+
 ## Project Structure
 
 - `bin/` - CDK app entry point
 - `lib/` - CDK infrastructure code
 - `lambda/` - Lambda function code
   - `constants.js` - Shared constants for Lambda functions
-- `config/` - Configuration for CDK infrastructure
-  - `constants.ts` - Shared constants for infrastructure code
 
-## Constants Management
+## Available Endpoints
 
-The application uses two separate constants files:
-
-1. `lambda/constants.js` - Used by Lambda functions at runtime
-2. `config/constants.ts` - Used by CDK infrastructure code during deployment
-
-This separation is necessary because Lambda functions are packaged and deployed separately from the CDK code.
-
-## Development
-
-To add a new constant:
-1. Add it to both files if it's needed in both contexts
-2. Add it only to the relevant file if it's specific to either Lambda or CDK
+- `GET /products` - Get a list of all products
+- `GET /products/{productId}` - Get a specific product by ID
 
 ## Deployment
 
