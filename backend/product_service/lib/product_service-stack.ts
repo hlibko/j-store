@@ -7,11 +7,18 @@ export class ProductServiceStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // Defines an AWS Lambda resource
+    // Defines an AWS Lambda resource for getting all products
     const getProductsList = new Function(this, "GetProductsListHandler", {
       runtime: Runtime.NODEJS_22_X,
       code: Code.fromAsset("lambda"), // code loaded from "lambda" directory
       handler: "getProductsList.handler",
+    });
+
+    // Defines an AWS Lambda resource for getting a product by ID
+    const getProductsById = new Function(this, "GetProductsByIdHandler", {
+      runtime: Runtime.NODEJS_22_X,
+      code: Code.fromAsset("lambda"), // code loaded from "lambda" directory
+      handler: "getProductsById.handler",
     });
 
     // Create API Gateway REST API
@@ -32,5 +39,10 @@ export class ProductServiceStack extends Stack {
     // Add GET method to /products resource
     productsResource.addMethod('GET', new LambdaIntegration(getProductsList));
 
+    // Create a resource for /products/{productId}
+    const productResource = productsResource.addResource('{productId}');
+    
+    // Add GET method to /products/{productId} resource
+    productResource.addMethod('GET', new LambdaIntegration(getProductsById));
   }
 }
