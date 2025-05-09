@@ -2,6 +2,7 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { Construct } from 'constructs';
 import { RestApi, LambdaIntegration, Cors } from "aws-cdk-lib/aws-apigateway";
+import { FRONTEND_URL } from '../config/constants';
 
 export class ProductServiceStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -26,7 +27,7 @@ export class ProductServiceStack extends Stack {
       restApiName: "Products Service",
       description: "This service serves product information",
       defaultCorsPreflightOptions: {
-        allowOrigins: ['https://d1y74wccw6evhw.cloudfront.net'],
+        allowOrigins: [FRONTEND_URL],
         allowMethods: ['GET', 'OPTIONS'],
         allowHeaders: Cors.DEFAULT_HEADERS,
         allowCredentials: true,
@@ -41,7 +42,7 @@ export class ProductServiceStack extends Stack {
 
     // Create a resource for /products/{productId}
     const productResource = productsResource.addResource('{productId}');
-    
+
     // Add GET method to /products/{productId} resource
     productResource.addMethod('GET', new LambdaIntegration(getProductsById));
   }

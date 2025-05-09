@@ -1,15 +1,34 @@
-# Welcome to your CDK TypeScript project
+# Product Service
 
-You should explore the contents of this project. It demonstrates a CDK app with an instance of a stack (`ProductServiceStack`)
-which contains an Amazon SQS queue that is subscribed to an Amazon SNS topic.
+This service provides product information through a REST API.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Project Structure
 
-## Useful commands
+- `bin/` - CDK app entry point
+- `lib/` - CDK infrastructure code
+- `lambda/` - Lambda function code
+  - `constants.js` - Shared constants for Lambda functions
+- `config/` - Configuration for CDK infrastructure
+  - `constants.ts` - Shared constants for infrastructure code
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `cdk deploy`      deploy this stack to your default AWS account/region
-* `cdk diff`        compare deployed stack with current state
-* `cdk synth`       emits the synthesized CloudFormation template
+## Constants Management
+
+The application uses two separate constants files:
+
+1. `lambda/constants.js` - Used by Lambda functions at runtime
+2. `config/constants.ts` - Used by CDK infrastructure code during deployment
+
+This separation is necessary because Lambda functions are packaged and deployed separately from the CDK code.
+
+## Development
+
+To add a new constant:
+1. Add it to both files if it's needed in both contexts
+2. Add it only to the relevant file if it's specific to either Lambda or CDK
+
+## Deployment
+
+```
+npm run build
+cdk deploy
+```
