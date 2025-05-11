@@ -1,6 +1,6 @@
 {
   "name": "product_service",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "bin": {
     "product_service": "bin/product_service.js"
   },
@@ -23,8 +23,9 @@
     "typescript": "~5.6.3"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.806.0",
+    "@aws-sdk/lib-dynamodb": "^3.806.0",
     "aws-cdk-lib": "2.190.0",
-    "aws-sdk": "^2.1692.0",
     "constructs": "^10.0.0"
   }
 }
