@@ -37,11 +37,27 @@ export class ProductServiceStack extends Stack {
       }
     });
 
+    // Defines an AWS Lambda resource for creating a product
+    const createProduct = new Function(this, "CreateProductHandler", {
+      runtime: Runtime.NODEJS_22_X,
+      code: Code.fromAsset("lambda"),
+      handler: "createProduct.handler",
+      environment: {
+        PRODUCTS_TABLE_NAME: productsTable.tableName,
+        STOCKS_TABLE_NAME: stocksTable.tableName,
+        REGION: this.region,
+      }
+    });
+
     // Grant permissions to Lambda functions to access DynamoDB tables
     productsTable.grantReadData(getProductsList);
-    productsTable.grantReadData(getProductsById);
     stocksTable.grantReadData(getProductsList);
+
+    productsTable.grantReadData(getProductsById);
     stocksTable.grantReadData(getProductsById);
+
+    productsTable.grantWriteData(createProduct);
+    stocksTable.grantWriteData(createProduct);
 
     // Create API Gateway REST API
     const api = new RestApi(this, "ProductsApi", {
@@ -49,7 +65,7 @@ export class ProductServiceStack extends Stack {
       description: "This service serves product information",
       defaultCorsPreflightOptions: {
         allowOrigins: [FRONTEND_URL],
-        allowMethods: ['GET', 'OPTIONS'],
+        allowMethods: ['GET', 'POST', 'OPTIONS'],
         allowHeaders: Cors.DEFAULT_HEADERS,
         allowCredentials: true,
       }
@@ -66,5 +82,8 @@ export class ProductServiceStack extends Stack {
 
     // Add GET method to /products/{productId} resource
     productResource.addMethod('GET', new LambdaIntegration(getProductsById));
+
+    // Add POST method to /products resource
+    productsResource.addMethod('POST', new LambdaIntegration(createProduct));
   }
 }
