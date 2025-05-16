@@ -9,6 +9,7 @@ export interface APIGatewayEvent {
     pathParameters?: {
         productId?: string;
     };
+    body?: string;
 }
 
 export interface APIGatewayResponse {
