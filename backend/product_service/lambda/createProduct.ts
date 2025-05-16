@@ -1,6 +1,9 @@
-// lambda/createProduct.ts
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import {
+    DynamoDBDocumentClient,
+    TransactWriteCommand,
+    TransactWriteCommandInput
+} from '@aws-sdk/lib-dynamodb';
 import { FRONTEND_URL } from './constants';
 import { APIGatewayEvent, APIGatewayResponse, Product } from './types';
 import { randomUUID } from 'crypto';
@@ -26,6 +29,10 @@ const createResponse = (statusCode: number, body: any): APIGatewayResponse => ({
     body: JSON.stringify(body)
 });
 
+/**
+ * Lambda handler for creating a product with stock in a single transaction
+ * If either the product or stock creation fails, the entire transaction is rolled back
+ */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayResponse> => {
     try {
         // Parse request body
@@ -44,6 +51,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
             return createResponse(400, { message: "Valid product price is required" });
         }
 
+        if (productData.count === undefined || isNaN(Number(productData.count))) {
+            return createResponse(400, { message: "Valid stock count is required" });
+        }
+
         // Generate a UUID for the new product
         const productId = randomUUID();
 
@@ -55,29 +66,39 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayRespons
             price: Number(productData.price)
         };
 
-        // Save to DynamoDB Products table
-        await docClient.send(new PutCommand({
-            TableName: process.env.PRODUCTS_TABLE_NAME || 'J-Store-Products',
-            Item: product
-        }));
-
-        // If stock count is provided, save to Stocks table
-        if (productData.count !== undefined) {
-            await docClient.send(new PutCommand({
-                TableName: process.env.STOCKS_TABLE_NAME || 'J-Store-Stocks',
-                Item: {
-                    product_id: productId,
-                    count: Number(productData.count)
+        // Create a transaction that includes both product and stock creation
+        const transactionParams: TransactWriteCommandInput = {
+            TransactItems: [
+                {
+                    // Add item to Products table
+                    Put: {
+                        TableName: process.env.PRODUCTS_TABLE_NAME || 'J-Store-Products',
+                        Item: product
+                    }
+                },
+                {
+                    // Add item to Stocks table
+                    Put: {
+                        TableName: process.env.STOCKS_TABLE_NAME || 'J-Store-Stocks',
+                        Item: {
+                            product_id: productId,
+                            count: Number(productData.count)
+                        }
+                    }
                 }
-            }));
-        }
+            ]
+        };
 
+        // Execute the transaction
+        await docClient.send(new TransactWriteCommand(transactionParams));
+
+        // Return the created product with stock count
         return createResponse(201, {
             ...product,
-            count: productData.count !== undefined ? Number(productData.count) : 0
+            count: Number(productData.count)
         });
     } catch (error) {
-        console.error('Error in createProduct:', error);
+        console.error('Error in createProductTransaction:', error);
         return createResponse(500, { message: "Internal server error" });
     }
 };
