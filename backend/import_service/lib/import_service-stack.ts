@@ -34,8 +34,16 @@ export class ImportServiceStack extends cdk.Stack {
 
     // Create 'uploaded' folder in the bucket
     new s3deploy.BucketDeployment(this, 'DeployUploadedFolder', {
-      sources: [s3deploy.Source.data('uploaded/.keep', '')], // Create an empty .keep file in the uploaded folder
+      sources: [s3deploy.Source.data('uploaded/.keep', '')],
       destinationBucket: this.importBucket,
+      retainOnDelete: true,
+    });
+    
+    // Create 'parsed' folder in the bucket
+    new s3deploy.BucketDeployment(this, 'DeployParsedFolder', {
+      sources: [s3deploy.Source.data('parsed/.keep', '')],
+      destinationBucket: this.importBucket,
+      retainOnDelete: true,
     });
 
     // Output the bucket name
@@ -56,11 +64,11 @@ export class ImportServiceStack extends cdk.Stack {
     });
 
     // Grant S3 permissions to the Lambda function
-    const s3Policy = new iam.PolicyStatement({
+    const s3PolicyImportProductsFile = new iam.PolicyStatement({
       actions: ['s3:PutObject'],
       resources: [`${this.importBucket.bucketArn}/uploaded/*`],
     });
-    importProductsFileLambda.addToRolePolicy(s3Policy);
+    importProductsFileLambda.addToRolePolicy(s3PolicyImportProductsFile);
 
     // Create API Gateway
     const api = new apigateway.RestApi(this, 'ImportServiceApi', {
@@ -124,12 +132,15 @@ export class ImportServiceStack extends cdk.Stack {
       },
     });
 
-    // Grant S3 read permissions to the Lambda function
-    const s3ReadPolicy = new iam.PolicyStatement({
-      actions: ['s3:GetObject'],
-      resources: [`${this.importBucket.bucketArn}/uploaded/*`],
+    // Grant S3 permissions to the Lambda function
+    const s3PolicyImportFileParserLambda = new iam.PolicyStatement({
+      actions: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+      resources: [
+        `${this.importBucket.bucketArn}/uploaded/*`,
+        `${this.importBucket.bucketArn}/parsed/*`
+      ],
     });
-    importFileParserLambda.addToRolePolicy(s3ReadPolicy);
+    importFileParserLambda.addToRolePolicy(s3PolicyImportFileParserLambda);
 
     // Add S3 event notification for the uploaded folder
     this.importBucket.addEventNotification(
