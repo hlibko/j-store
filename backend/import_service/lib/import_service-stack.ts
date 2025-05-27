@@ -2,6 +2,10 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as path from 'path';
 
 export class ImportServiceStack extends cdk.Stack {
   public readonly importBucket: s3.Bucket;
@@ -38,6 +42,75 @@ export class ImportServiceStack extends cdk.Stack {
       value: this.importBucket.bucketName,
       description: 'The name of the S3 bucket for import service',
       exportName: 'ImportBucketName',
+    });
+
+    // Create importProductsFile Lambda function
+    const importProductsFileLambda = new lambda.Function(this, 'ImportProductsFileHandler', {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: 'importProductsFile.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      environment: {
+        BUCKET_NAME: this.importBucket.bucketName,
+      },
+    });
+
+    // Grant S3 permissions to the Lambda function
+    const s3Policy = new iam.PolicyStatement({
+      actions: ['s3:PutObject'],
+      resources: [`${this.importBucket.bucketArn}/uploaded/*`],
+    });
+    importProductsFileLambda.addToRolePolicy(s3Policy);
+
+    // Create API Gateway
+    const api = new apigateway.RestApi(this, 'ImportServiceApi', {
+      restApiName: 'Import Service API',
+      description: 'API for import service',
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+      },
+    });
+
+    // Create /import resource
+    const importResource = api.root.addResource('import');
+
+    // Add GET method with name query parameter
+    importResource.addMethod('GET',
+      new apigateway.LambdaIntegration(importProductsFileLambda), {
+      requestParameters: {
+        'method.request.querystring.name': true,
+      },
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+            'method.response.header.Access-Control-Allow-Credentials': true,
+          },
+        },
+        {
+          statusCode: '400',
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+            'method.response.header.Access-Control-Allow-Credentials': true,
+          },
+        },
+        {
+          statusCode: '500',
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+            'method.response.header.Access-Control-Allow-Credentials': true,
+          },
+        },
+      ],
+    }
+    );
+
+    // Output the API URL
+    new cdk.CfnOutput(this, 'ApiUrl', {
+      value: api.url,
+      description: 'The URL of the Import Service API',
+      exportName: 'ImportServiceApiUrl',
     });
   }
 }
