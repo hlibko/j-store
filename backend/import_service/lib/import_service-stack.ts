@@ -6,6 +6,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
+import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
 
 export class ImportServiceStack extends cdk.Stack {
   public readonly importBucket: s3.Bucket;
@@ -112,5 +113,29 @@ export class ImportServiceStack extends cdk.Stack {
       description: 'The URL of the Import Service API',
       exportName: 'ImportServiceApiUrl',
     });
+
+    // Create importFileParser Lambda function
+    const importFileParserLambda = new lambda.Function(this, 'ImportFileParserHandler', {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: 'importFileParser.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda')),
+      environment: {
+        BUCKET_NAME: this.importBucket.bucketName,
+      },
+    });
+
+    // Grant S3 read permissions to the Lambda function
+    const s3ReadPolicy = new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: [`${this.importBucket.bucketArn}/uploaded/*`],
+    });
+    importFileParserLambda.addToRolePolicy(s3ReadPolicy);
+
+    // Add S3 event notification for the uploaded folder
+    this.importBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(importFileParserLambda),
+      { prefix: 'uploaded/' }
+    );
   }
 }
