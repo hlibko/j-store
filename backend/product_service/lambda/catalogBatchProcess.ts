@@ -1,6 +1,6 @@
 import { SQSEvent, SQSHandler } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: process.env.REGION });
 const dynamodb = DynamoDBDocumentClient.from(client);
@@ -19,29 +19,34 @@ export const handler: SQSHandler = async (event: SQSEvent): Promise<void> => {
       // Extract product and stock data
       const { id, title, description, price, count } = productData;
 
-      // Create product in Products table
-      const productParams = {
-        TableName: PRODUCTS_TABLE_NAME,
-        Item: {
-          id,
-          title,
-          description,
-          price
-        }
+      // Create transaction to ensure both product and stock are created atomically
+      const transactionParams = {
+        TransactItems: [
+          {
+            Put: {
+              TableName: PRODUCTS_TABLE_NAME,
+              Item: {
+                id,
+                title,
+                description,
+                price
+              }
+            }
+          },
+          {
+            Put: {
+              TableName: STOCKS_TABLE_NAME,
+              Item: {
+                product_id: id,
+                count
+              }
+            }
+          }
+        ]
       };
 
-      // Create stock in Stocks table
-      const stockParams = {
-        TableName: STOCKS_TABLE_NAME,
-        Item: {
-          product_id: id,
-          count
-        }
-      };
-
-      // Save both items to DynamoDB
-      await dynamodb.send(new PutCommand(productParams));
-      await dynamodb.send(new PutCommand(stockParams));
+      // Execute transaction to save both items atomically
+      await dynamodb.send(new TransactWriteCommand(transactionParams));
 
       return { id, status: 'created' };
     });
