@@ -4,6 +4,10 @@ import { Construct } from 'constructs';
 import { RestApi, LambdaIntegration, Cors } from "aws-cdk-lib/aws-apigateway";
 import { FRONTEND_URL } from '../lambda/constants';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export class ProductServiceStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -49,6 +53,37 @@ export class ProductServiceStack extends Stack {
       }
     });
 
+    // Create SQS queue for catalog items
+    const catalogItemsQueue = new Queue(this, 'CatalogItemsQueue', {
+      queueName: 'catalogItemsQueue'
+    });
+
+    // Create SNS topic for product creation notifications
+    const createProductTopic = new Topic(this, 'CreateProductTopic', {
+      topicName: 'createProductTopic'
+    });
+
+    // Add email subscription to the SNS topic
+    createProductTopic.addSubscription(new EmailSubscription('test@gmail.com'));
+
+    // Create Lambda function for processing batch items from SQS
+    const catalogBatchProcess = new Function(this, "CatalogBatchProcessHandler", {
+      runtime: Runtime.NODEJS_22_X,
+      code: Code.fromAsset("lambda"),
+      handler: "catalogBatchProcess.handler",
+      environment: {
+        PRODUCTS_TABLE_NAME: productsTable.tableName,
+        STOCKS_TABLE_NAME: stocksTable.tableName,
+        REGION: this.region,
+        SNS_TOPIC_ARN: createProductTopic.topicArn,
+      }
+    });
+
+    // Configure SQS to trigger Lambda with batch size of 5
+    catalogBatchProcess.addEventSource(new SqsEventSource(catalogItemsQueue, {
+      batchSize: 5
+    }));
+
     // Grant permissions to Lambda functions to access DynamoDB tables
     productsTable.grantReadData(getProductsList);
     stocksTable.grantReadData(getProductsList);
@@ -58,6 +93,13 @@ export class ProductServiceStack extends Stack {
 
     productsTable.grantWriteData(createProduct);
     stocksTable.grantWriteData(createProduct);
+
+    // Grant permissions for catalogBatchProcess to write to DynamoDB
+    productsTable.grantWriteData(catalogBatchProcess);
+    stocksTable.grantWriteData(catalogBatchProcess);
+
+    // Grant permission for catalogBatchProcess to publish to SNS topic
+    createProductTopic.grantPublish(catalogBatchProcess);
 
     // Create API Gateway REST API
     const api = new RestApi(this, "ProductsApi", {
