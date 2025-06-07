@@ -6,6 +6,8 @@ import { FRONTEND_URL } from '../lambda/constants';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export class ProductServiceStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -56,6 +58,14 @@ export class ProductServiceStack extends Stack {
       queueName: 'catalogItemsQueue'
     });
 
+    // Create SNS topic for product creation notifications
+    const createProductTopic = new Topic(this, 'CreateProductTopic', {
+      topicName: 'createProductTopic'
+    });
+
+    // Add email subscription to the SNS topic
+    createProductTopic.addSubscription(new EmailSubscription('test@gmail.com'));
+
     // Create Lambda function for processing batch items from SQS
     const catalogBatchProcess = new Function(this, "CatalogBatchProcessHandler", {
       runtime: Runtime.NODEJS_22_X,
@@ -65,6 +75,7 @@ export class ProductServiceStack extends Stack {
         PRODUCTS_TABLE_NAME: productsTable.tableName,
         STOCKS_TABLE_NAME: stocksTable.tableName,
         REGION: this.region,
+        SNS_TOPIC_ARN: createProductTopic.topicArn,
       }
     });
 
@@ -86,6 +97,9 @@ export class ProductServiceStack extends Stack {
     // Grant permissions for catalogBatchProcess to write to DynamoDB
     productsTable.grantWriteData(catalogBatchProcess);
     stocksTable.grantWriteData(catalogBatchProcess);
+
+    // Grant permission for catalogBatchProcess to publish to SNS topic
+    createProductTopic.grantPublish(catalogBatchProcess);
 
     // Create API Gateway REST API
     const api = new RestApi(this, "ProductsApi", {

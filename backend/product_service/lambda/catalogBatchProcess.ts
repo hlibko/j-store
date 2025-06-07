@@ -1,11 +1,14 @@
 import { SQSEvent, SQSHandler } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 
 const client = new DynamoDBClient({ region: process.env.REGION });
 const dynamodb = DynamoDBDocumentClient.from(client);
+const snsClient = new SNSClient({ region: process.env.REGION });
 const PRODUCTS_TABLE_NAME = process.env.PRODUCTS_TABLE_NAME || '';
 const STOCKS_TABLE_NAME = process.env.STOCKS_TABLE_NAME || '';
+const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN || '';
 
 export const handler: SQSHandler = async (event: SQSEvent): Promise<void> => {
   console.log('Processing SQS batch event:', JSON.stringify(event));
@@ -47,6 +50,16 @@ export const handler: SQSHandler = async (event: SQSEvent): Promise<void> => {
 
       // Execute transaction to save both items atomically
       await dynamodb.send(new TransactWriteCommand(transactionParams));
+      
+      // Send notification to SNS topic
+      await snsClient.send(new PublishCommand({
+        TopicArn: SNS_TOPIC_ARN,
+        Subject: 'Product Created',
+        Message: JSON.stringify({
+          message: 'Product created successfully',
+          product: { id, title, description, price, count }
+        })
+      }));
 
       return { id, status: 'created' };
     });
