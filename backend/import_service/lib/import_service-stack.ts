@@ -7,6 +7,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class ImportServiceStack extends cdk.Stack {
   public readonly importBucket: s3.Bucket;
@@ -38,7 +39,7 @@ export class ImportServiceStack extends cdk.Stack {
       destinationBucket: this.importBucket,
       retainOnDelete: true,
     });
-    
+
     // Create 'parsed' folder in the bucket
     new s3deploy.BucketDeployment(this, 'DeployParsedFolder', {
       sources: [s3deploy.Source.data('parsed/.keep', '')],
@@ -122,6 +123,13 @@ export class ImportServiceStack extends cdk.Stack {
       exportName: 'ImportServiceApiUrl',
     });
 
+    // Reference the SQS queue from Product Service
+    const catalogItemsQueue = sqs.Queue.fromQueueArn(
+      this,
+      'CatalogItemsQueue',
+      `arn:aws:sqs:${this.region}:${this.account}:catalogItemsQueue`
+    );
+
     // Create importFileParser Lambda function
     const importFileParserLambda = new lambda.Function(this, 'ImportFileParserHandler', {
       runtime: lambda.Runtime.NODEJS_22_X,
@@ -129,6 +137,7 @@ export class ImportServiceStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda')),
       environment: {
         BUCKET_NAME: this.importBucket.bucketName,
+        SQS_URL: catalogItemsQueue.queueUrl,
       },
     });
 
@@ -141,6 +150,9 @@ export class ImportServiceStack extends cdk.Stack {
       ],
     });
     importFileParserLambda.addToRolePolicy(s3PolicyImportFileParserLambda);
+
+    // Grant SQS permissions to the Lambda function
+    catalogItemsQueue.grantSendMessages(importFileParserLambda);
 
     // Add S3 event notification for the uploaded folder
     this.importBucket.addEventNotification(
