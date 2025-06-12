@@ -1,0 +1,30 @@
+{
+  "name": "authorization_service",
+  "version": "0.1.0",
+  "bin": {
+    "authorization_service": "bin/authorization_service.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "cdk:deploy": "npm run build && cdk deploy --profile admin-1",
+    "cdk:deploy-hotswap": "cdk deploy --hotswap --profile admin-1",
+    "cdk:watch": "cdk watch --profile admin-1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "22.7.9",
+    "aws-cdk": "2.1016.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.6.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.196.0",
+    "constructs": "^10.0.0",
+    "dotenv": "^16.5.0"
+  }
+}

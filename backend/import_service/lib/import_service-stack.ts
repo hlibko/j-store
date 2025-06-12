@@ -29,8 +29,8 @@ export class ImportServiceStack extends cdk.Stack {
           allowedHeaders: ['*'],
         },
       ],
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // For development only, use RETAIN for production
-      autoDeleteObjects: true, // For development only, remove for production
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
 
     // Create 'uploaded' folder in the bucket
@@ -78,42 +78,64 @@ export class ImportServiceStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'X-Amz-User-Agent'],
+        allowCredentials: true,
       },
+    });
+
+    // Import the basicAuthorizer Lambda from Authorization Service
+    const basicAuthorizerArn = cdk.Fn.importValue('BasicAuthorizerLambdaArn');
+    const basicAuthorizer = new apigateway.TokenAuthorizer(this, 'BasicAuthorizer', {
+      handler: lambda.Function.fromFunctionAttributes(this, 'ImportedBasicAuthorizer', {
+        functionArn: basicAuthorizerArn,
+        sameEnvironment: true, // Specify that the function is in the same environment
+      }),
+      identitySource: 'method.request.header.Authorization',
     });
 
     // Create /import resource
     const importResource = api.root.addResource('import');
 
-    // Add GET method with name query parameter
+    // Add GET method with name query parameter and basicAuthorizer
     importResource.addMethod('GET',
-      new apigateway.LambdaIntegration(importProductsFileLambda), {
-      requestParameters: {
-        'method.request.querystring.name': true,
-      },
-      methodResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-            'method.response.header.Access-Control-Allow-Credentials': true,
-          },
+      new apigateway.LambdaIntegration(importProductsFileLambda, {
+        proxy: true,
+      }), {
+        authorizer: basicAuthorizer,
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+        requestParameters: {
+          'method.request.querystring.name': true,
         },
-        {
-          statusCode: '400',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-            'method.response.header.Access-Control-Allow-Credentials': true,
+        methodResponses: [
+          {
+            statusCode: '200',
+            responseParameters: {
+              'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Headers': true,
+              'method.response.header.Access-Control-Allow-Methods': true,
+              'method.response.header.Access-Control-Allow-Credentials': true,
+            },
           },
-        },
-        {
-          statusCode: '500',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-            'method.response.header.Access-Control-Allow-Credentials': true,
+          {
+            statusCode: '400',
+            responseParameters: {
+              'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Headers': true,
+              'method.response.header.Access-Control-Allow-Methods': true,
+              'method.response.header.Access-Control-Allow-Credentials': true,
+            },
           },
-        },
-      ],
-    }
+          {
+            statusCode: '500',
+            responseParameters: {
+              'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Headers': true,
+              'method.response.header.Access-Control-Allow-Methods': true,
+              'method.response.header.Access-Control-Allow-Credentials': true,
+            },
+          },
+        ],
+      }
     );
 
     // Output the API URL
