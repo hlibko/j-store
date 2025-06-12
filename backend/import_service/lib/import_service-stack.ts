@@ -81,39 +81,48 @@ export class ImportServiceStack extends cdk.Stack {
       },
     });
 
+    // Import the basicAuthorizer Lambda from Authorization Service
+    const basicAuthorizerArn = cdk.Fn.importValue('BasicAuthorizerLambdaArn');
+    const basicAuthorizer = new apigateway.TokenAuthorizer(this, 'BasicAuthorizer', {
+      handler: lambda.Function.fromFunctionArn(this, 'ImportedBasicAuthorizer', basicAuthorizerArn),
+      identitySource: 'method.request.header.Authorization',
+    });
+
     // Create /import resource
     const importResource = api.root.addResource('import');
 
-    // Add GET method with name query parameter
+    // Add GET method with name query parameter and basicAuthorizer
     importResource.addMethod('GET',
       new apigateway.LambdaIntegration(importProductsFileLambda), {
-      requestParameters: {
-        'method.request.querystring.name': true,
-      },
-      methodResponses: [
-        {
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-            'method.response.header.Access-Control-Allow-Credentials': true,
-          },
+        authorizer: basicAuthorizer,
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+        requestParameters: {
+          'method.request.querystring.name': true,
         },
-        {
-          statusCode: '400',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-            'method.response.header.Access-Control-Allow-Credentials': true,
+        methodResponses: [
+          {
+            statusCode: '200',
+            responseParameters: {
+              'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Credentials': true,
+            },
           },
-        },
-        {
-          statusCode: '500',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Origin': true,
-            'method.response.header.Access-Control-Allow-Credentials': true,
+          {
+            statusCode: '400',
+            responseParameters: {
+              'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Credentials': true,
+            },
           },
-        },
-      ],
-    }
+          {
+            statusCode: '500',
+            responseParameters: {
+              'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Credentials': true,
+            },
+          },
+        ],
+      }
     );
 
     // Output the API URL
