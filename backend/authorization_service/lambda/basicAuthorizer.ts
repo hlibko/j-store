@@ -54,12 +54,20 @@ const generatePolicy = (
           Resource: resource
         }
       ]
+    },
+    // Add context with CORS headers for all responses
+    context: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent',
+      'Access-Control-Allow-Methods': 'OPTIONS,GET',
+      'Access-Control-Allow-Credentials': 'true'
     }
   };
 
-  // Add context for status code if provided
+  // Add status code to context if provided
   if (statusCode) {
     authResponse.context = {
+      ...authResponse.context,
       statusCode: statusCode.toString()
     };
   }

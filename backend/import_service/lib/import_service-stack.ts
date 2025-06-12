@@ -29,8 +29,8 @@ export class ImportServiceStack extends cdk.Stack {
           allowedHeaders: ['*'],
         },
       ],
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // For development only, use RETAIN for production
-      autoDeleteObjects: true, // For development only, remove for production
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
 
     // Create 'uploaded' folder in the bucket
@@ -78,13 +78,18 @@ export class ImportServiceStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'X-Amz-User-Agent'],
+        allowCredentials: true,
       },
     });
 
     // Import the basicAuthorizer Lambda from Authorization Service
     const basicAuthorizerArn = cdk.Fn.importValue('BasicAuthorizerLambdaArn');
     const basicAuthorizer = new apigateway.TokenAuthorizer(this, 'BasicAuthorizer', {
-      handler: lambda.Function.fromFunctionArn(this, 'ImportedBasicAuthorizer', basicAuthorizerArn),
+      handler: lambda.Function.fromFunctionAttributes(this, 'ImportedBasicAuthorizer', {
+        functionArn: basicAuthorizerArn,
+        sameEnvironment: true, // Specify that the function is in the same environment
+      }),
       identitySource: 'method.request.header.Authorization',
     });
 
@@ -93,7 +98,9 @@ export class ImportServiceStack extends cdk.Stack {
 
     // Add GET method with name query parameter and basicAuthorizer
     importResource.addMethod('GET',
-      new apigateway.LambdaIntegration(importProductsFileLambda), {
+      new apigateway.LambdaIntegration(importProductsFileLambda, {
+        proxy: true,
+      }), {
         authorizer: basicAuthorizer,
         authorizationType: apigateway.AuthorizationType.CUSTOM,
         requestParameters: {
@@ -104,6 +111,8 @@ export class ImportServiceStack extends cdk.Stack {
             statusCode: '200',
             responseParameters: {
               'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Headers': true,
+              'method.response.header.Access-Control-Allow-Methods': true,
               'method.response.header.Access-Control-Allow-Credentials': true,
             },
           },
@@ -111,6 +120,8 @@ export class ImportServiceStack extends cdk.Stack {
             statusCode: '400',
             responseParameters: {
               'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Headers': true,
+              'method.response.header.Access-Control-Allow-Methods': true,
               'method.response.header.Access-Control-Allow-Credentials': true,
             },
           },
@@ -118,6 +129,8 @@ export class ImportServiceStack extends cdk.Stack {
             statusCode: '500',
             responseParameters: {
               'method.response.header.Access-Control-Allow-Origin': true,
+              'method.response.header.Access-Control-Allow-Headers': true,
+              'method.response.header.Access-Control-Allow-Methods': true,
               'method.response.header.Access-Control-Allow-Credentials': true,
             },
           },
