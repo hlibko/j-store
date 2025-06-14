@@ -2,13 +2,16 @@
   "name": "infrastructure",
   "version": "0.1.0",
   "bin": {
-    "infrastructure": "bin/infrastructure.js"
+    "infrastructure": "bin/cart.js"
   },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy",
+    "synth": "cdk synth"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
@@ -21,6 +24,7 @@
   },
   "dependencies": {
     "aws-cdk-lib": "2.200.1",
-    "constructs": "^10.0.0"
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.21"
   }
 }

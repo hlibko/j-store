@@ -1,83 +1,86 @@
-# nodejs-aws-cart-api
+# Cart Service API - AWS Lambda Deployment
 
-## Installation
+This project is a NestJS application configured to run as an AWS Lambda function using AWS CDK for deployment.
+
+## Project Structure
+
+- `src/` - NestJS application source code
+- `src/lambda.ts` - Lambda handler for the NestJS application
+- `infrastructure/` - AWS CDK code for deploying the application
+- `dist/` - Build output directory
+
+## Setup and Deployment
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- AWS CLI configured with appropriate credentials
+- AWS CDK installed globally (`npm install -g aws-cdk`)
+
+### Installation
+
+1. Install dependencies for the NestJS application:
 
 ```bash
+cd /path/to/nodejs-aws-cart-api
 npm install
 ```
 
-
-
-## Running the app
+2. Install dependencies for the CDK infrastructure:
 
 ```bash
-# development
-npm run start
+cd /path/to/nodejs-aws-cart-api/infrastructure
+npm install
+```
 
-# watch mode
+### Building and Deploying
+
+1. Build the NestJS application and bundle it for Lambda:
+
+```bash
+cd /path/to/nodejs-aws-cart-api
+npm run build:lambda
+```
+
+This will:
+- Build the NestJS application
+- Bundle it using webpack into a single file
+
+2. Deploy using AWS CDK:
+
+```bash
+cd /path/to/nodejs-aws-cart-api/infrastructure
+npm run deploy
+```
+
+## How It Works
+
+1. The NestJS application is wrapped with a Lambda handler in `src/lambda.ts`
+2. The application is built and bundled into a single JavaScript file
+3. AWS CDK creates:
+   - A Lambda function using the bundled application
+   - An API Gateway to expose the Lambda function
+   - Necessary IAM roles and permissions
+
+## Local Development
+
+For local development, you can still use the standard NestJS commands:
+
+```bash
 npm run start:dev
-
-# production mode
-npm run start:prod
 ```
 
-
-## Test
+## Testing
 
 ```bash
-# unit tests
-npm run test
-
-# e2e tests
-npm run test:e2e
-
-# test coverage
-npm run test:cov
+npm test
 ```
 
-### Create user and get auth token
+## Cleanup
 
-register user with `POST` http://localhost:4000/api/auth/register
+To remove all deployed resources:
 
-Body:
-```json
-{
-  "name": "your_github_login",
-  "password": "TEST_PASSWORD"
-}
-```
-
-**get token** with `POST` http://localhost:4000/api/auth/login
-
-Body
-```json
-{
-  "username": "your_github_login",
-  "password": "TEST_PASSWORD"
-}
-```
-Response
-```json
-{
-  "token_type": "Basic",
-  "access_token": "eW91ckdpdGh1YkxvZ2luOlRFU1RfUEFTU1dPUkQ="
-}
-
-```
-
-**Or you can do it with bash script, make sure you have installed `curl` in your system**
-
-Put content of env.example to .env and **update credentials**:
 ```bash
-cat env.example > .env
+cd /path/to/nodejs-aws-cart-api/infrastructure
+npm run destroy
 ```
-
-Create user and get token
-```bash
-./get-token.sh
-```
-if command failed make script executable
-```bash
-chmod +x ./get-token.sh
-```
-
