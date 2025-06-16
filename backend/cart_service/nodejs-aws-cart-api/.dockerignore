@@ -1,0 +1,48 @@
+# Node.js dependencies
+node_modules
+# Generated during npm install
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build output
+dist
+coverage
+.nyc_output
+
+# Environment files
+.env
+*.env
+.env.*
+
+# Git related
+.git
+.gitignore
+
+# IDE files
+.idea
+.vscode
+*.sublime-workspace
+.project
+.classpath
+.c9
+*.launch
+.settings
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test
+jest-e2e.json
+
+# AWS deployment files
+infrastructure
+layer
+.elasticbeanstalk
+
+# Misc
+README.md
+.prettierrc
+.eslintrc.js
