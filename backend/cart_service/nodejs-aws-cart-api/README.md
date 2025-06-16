@@ -1,86 +1,65 @@
-# Cart Service API - AWS Lambda Deployment
+# Cart Service API
 
-This project is a NestJS application configured to run as an AWS Lambda function using AWS CDK for deployment.
+## Description
+This service handles shopping cart operations for the J-Store application.
 
-## Project Structure
+## Database Setup
+The service uses PostgreSQL for data storage. The database connection is configured through environment variables.
 
-- `src/` - NestJS application source code
-- `src/lambda.ts` - Lambda handler for the NestJS application
-- `infrastructure/` - AWS CDK code for deploying the application
-- `dist/` - Build output directory
+### Database Configuration
+- Host: j-store-cart-db.c5kym0uqosil.eu-north-1.rds.amazonaws.com
+- Port: 5432
+- Database: j-store-cart-db
+- Username: postgres
 
-## Setup and Deployment
-
-### Prerequisites
-
-- Node.js (v14 or later)
-- AWS CLI configured with appropriate credentials
-- AWS CDK installed globally (`npm install -g aws-cdk`)
-
-### Installation
-
-1. Install dependencies for the NestJS application:
+### Running Migrations
+To set up the database schema:
 
 ```bash
-cd /path/to/nodejs-aws-cart-api
-npm install
+npm run migration:run
 ```
 
-2. Install dependencies for the CDK infrastructure:
+To revert migrations:
 
 ```bash
-cd /path/to/nodejs-aws-cart-api/infrastructure
-npm install
+npm run migration:revert
 ```
 
-### Building and Deploying
-
-1. Build the NestJS application and bundle it for Lambda:
+## Installation
 
 ```bash
-cd /path/to/nodejs-aws-cart-api
-npm run build:lambda
+$ npm install
 ```
 
-This will:
-- Build the NestJS application
-- Bundle it using webpack into a single file
-
-2. Deploy using AWS CDK:
+## Running the app
 
 ```bash
-cd /path/to/nodejs-aws-cart-api/infrastructure
-npm run deploy
+# development
+$ npm run start
+
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
 ```
 
-## How It Works
-
-1. The NestJS application is wrapped with a Lambda handler in `src/lambda.ts`
-2. The application is built and bundled into a single JavaScript file
-3. AWS CDK creates:
-   - A Lambda function using the bundled application
-   - An API Gateway to expose the Lambda function
-   - Necessary IAM roles and permissions
-
-## Local Development
-
-For local development, you can still use the standard NestJS commands:
+## Test
 
 ```bash
-npm run start:dev
+# unit tests
+$ npm run test
+
+# e2e tests
+$ npm run test:e2e
+
+# test coverage
+$ npm run test:cov
 ```
 
-## Testing
+## Deployment
 
 ```bash
-npm test
-```
-
-## Cleanup
-
-To remove all deployed resources:
-
-```bash
-cd /path/to/nodejs-aws-cart-api/infrastructure
-npm run destroy
+# deploy to AWS Lambda
+$ npm run deploy:lambda
 ```
