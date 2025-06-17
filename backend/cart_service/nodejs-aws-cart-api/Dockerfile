@@ -1,21 +1,39 @@
-FROM node:22-alpine
+# Build stage
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json first for better caching
+# Copy package files
 COPY package*.json ./
 
 # Install dependencies
 RUN npm ci
 
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
 # Build the application
 RUN npm run build
 
-# Expose the port the app runs on
+# Production stage
+FROM node:22-alpine AS production
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --omit=dev
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Expose the port
 EXPOSE 4000
 
-# Command to run the application
-CMD ["npm", "run", "start:prod"]
+# Set NODE_ENV
+ENV NODE_ENV=production
+
+# Run the application
+CMD ["node", "dist/main"]
